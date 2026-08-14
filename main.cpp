@@ -3,8 +3,6 @@
 #include <DirectXMath.h>
 #include <d3dcompiler.h>
 #include "DirectXTK-main/Inc/WICTextureLoader.h"
-#include "LibLoader.h"
-#include <cstdio>
 
 ID3D11VertexShader* vertexShader = nullptr;
 ID3D11PixelShader* pixelShader = nullptr;
@@ -25,32 +23,10 @@ void CleanD3D();
 
 using namespace DirectX;
 
-int factorial(int n) {
-    
-      // Base case: if n is 0 or 1, return 1
-    if (n <= 1) {
-        return 1;
-    }
-
-    // Recursive step: n * the result of the next function call
-    return n * (factorial(n - 1) + factorial(n - 2));
-}
-
-template<typename T, typename U, typename V>
-struct is_same {
-      constexpr static bool value = false;
-};
-
-template<typename T ,typename U>
-struct is_same<T,T ,U> {
-      constexpr static bool value = true;
-      
-};
-
 struct Vertex {
-      float x, y, z;   // pozisyon
-      float u, v;      // texture koordinatları
-      float nx, ny, nz; // normal vektörü
+      float x, y, z;   
+      float u, v;      
+      float nx, ny, nz; 
       
       Vertex() : x(0), y(0), z(0), u(0), v(0), nx(0), ny(0), nz(0) {}
       
@@ -64,19 +40,10 @@ struct ConstantBuffer {
 };
 
 Vertex vertices[] = {
-      { -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f },  // sol üst
-      {  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f },  // sağ üst
-      {  0.0f, -0.5f, 0.0f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f }   // alt orta
+      { -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f },  
+      {  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f }, 
+      {  0.0f, -0.5f, 0.0f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f }  
 };
-
-template<typename T>
-constexpr auto exampleFunc(T&& value) noexcept(true) -> decltype(T{}){
-    if constexpr (std::is_integral_v<std::remove_reference_t<T>>) {
-        return value + 1;
-    } else {
-        return value;
-    }
-}
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       
@@ -84,24 +51,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             
             case WM_DESTROY:
                   PostQuitMessage(0);
-                  return 0;
-
-            case WM_CREATE: {
-                  
-                  const char * libPath = "C:\\Windows\\System32\\user32.dll";
-                  LibLoader lib(libPath);
-                  LibLoader slib("C:\\Users\\dogu1\\Downloads\\SDL3-3.4.0-win32-x64\\SDL3.dll");
-
-                  auto sdlInitFunc = slib.get_function<int>("SDL_Init");
-                  if (sdlInitFunc) {
-                        MessageBoxA(hwnd, "SDL initialized successfully!", "Success", MB_OK);
-                  }      
-
-                  return 0;      
-
-
-            }
-                  
+                  return 0;          
       }
       
       return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -110,18 +60,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
    
-
       constexpr char CLASS_NAME[] = "D3DWindowClass";
 
-      // pencere sınıfı tanımı
       WNDCLASS wc = {};
       wc.lpfnWndProc = WindowProc;
       wc.hInstance = hInstance;
       wc.lpszClassName = CLASS_NAME;
-
+    
       RegisterClass(&wc);
-
-      // pencere oluştur
+    
       HWND hwnd = CreateWindowEx(
           0,
           CLASS_NAME,
@@ -130,10 +77,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
           CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
           nullptr, nullptr, hInstance, nullptr
       );
-
+    
       ShowWindow(hwnd, nCmdShow);
-
-
       InitD3D(hwnd);
 
       MSG msg = {};
@@ -155,14 +100,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
 void InitD3D(HWND hwnd) {
       DXGI_SWAP_CHAIN_DESC scd = {};
       scd.BufferCount = 1;
-      scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;  // 32-bit renk
+      scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; 
       scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
       scd.OutputWindow = hwnd;
       scd.SampleDesc.Count = 1;
       scd.Windowed = TRUE;
       scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
-      // device + swap chain oluştur
       D3D11CreateDeviceAndSwapChain(
           nullptr,
           D3D_DRIVER_TYPE_HARDWARE,
@@ -177,16 +121,13 @@ void InitD3D(HWND hwnd) {
           &context
       );
       
-      // arka buffer'ı al ve render target oluştur
       ID3D11Texture2D* backBuffer = nullptr;
       swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer);
       device->CreateRenderTargetView(backBuffer, nullptr, &renderTargetView);
       backBuffer->Release();
        
-      // render target'ı pipeline'a bağla
       context->OMSetRenderTargets(1, &renderTargetView, nullptr);
         
-      // viewport (görüş alanı) ayarla
       D3D11_VIEWPORT viewport = {};
       viewport.TopLeftX = 0;
       viewport.TopLeftY = 0;
@@ -194,7 +135,6 @@ void InitD3D(HWND hwnd) {
       viewport.Height = 600;
       context->RSSetViewports(1, &viewport);
     
-      // HLSL shader'ı dosyadan derle
       ID3DBlob* vsBlob = nullptr;
       ID3DBlob* psBlob = nullptr;
       ID3DBlob* errorBlob = nullptr;
@@ -223,11 +163,9 @@ void InitD3D(HWND hwnd) {
             return;
       }
 
-      // Vertex & Pixel Shader oluştur
       device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &vertexShader);
       device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &pixelShader);
 
-      // Shader'ları pipeline'a bağla
       context->VSSetShader(vertexShader, nullptr, 0);
       context->PSSetShader(pixelShader, nullptr, 0);
 
@@ -262,16 +200,13 @@ void InitD3D(HWND hwnd) {
       UINT offset = 0;
       context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
       
-
-      // Üçgen olarak çizim yapılacağını belirt
       context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
       ID3D11ShaderResourceView* textureSRV = nullptr;
       CreateWICTextureFromFile(device, context, L"texture.png", nullptr, &textureSRV);
       context->PSSetShaderResources(0, 1, &textureSRV);
-      
 
-      // ---- CONSTANT BUFFER ----
+    
       D3D11_BUFFER_DESC cbd = {};
       cbd.Usage = D3D11_USAGE_DYNAMIC;
       cbd.ByteWidth = sizeof(ConstantBuffer);
@@ -280,9 +215,7 @@ void InitD3D(HWND hwnd) {
 
       device->CreateBuffer(&cbd, nullptr, &constantBuffer);
 
-      
       context->VSSetConstantBuffers(0, 1, &constantBuffer);
-
 
       ID3D11SamplerState* samplerState = nullptr;
 
