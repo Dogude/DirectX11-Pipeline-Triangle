@@ -26,12 +26,7 @@ using namespace DirectX;
 struct Vertex {
       float x, y, z;   
       float u, v;      
-      float nx, ny, nz; 
-      
-      Vertex() : x(0), y(0), z(0), u(0), v(0), nx(0), ny(0), nz(0) {}
-      
-      Vertex(float x, float y, float z, float u, float v, float nx, float ny, float nz) 
-            : x(x), y(y), z(z), u(u), v(v), nx(nx), ny(ny), nz(nz) {}                
+      float nx, ny, nz;             
 };
 
 struct ConstantBuffer {
